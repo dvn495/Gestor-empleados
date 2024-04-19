@@ -914,28 +914,57 @@ CREATE TABLE empleado(
 
   
 
-8. Devuelve un listado con los datos de los empleados que trabajan en el departamento de Sistemas, Contabilidad o I+D. Ordena el resultado alfabéticamente.
+1. Devuelve un listado con los datos de los empleados que trabajan en el departamento de Sistemas, Contabilidad o I+D. Ordena el resultado alfabéticamente.
 
-  ```sql
-  
-  ```
+```sql
+ select e.id, e.nif, e.nombre, e.apellido1, e.apellido2, e.codigo_departamento
+  from empleado as e, departamento as d
+  where e.codigo_departamento = d.codigo and e.codigo_departamento in (2,4,5)
+  order by e.nombre ASC
++----+-----------+---------+-----------+-----------+---------------------+
+| id | nif       | nombre  | apellido1 | apellido2 | codigo_departamento |
++----+-----------+---------+-----------+-----------+---------------------+
+|  2 | Y5575632D | Adela   | Salas     | Díaz      |                   2 |
+|  4 | 77705545E | Adrián  | Suárez    | NULL      |                   4 |
+| 10 | 46384486H | Diego   | Flores    | Salas     |                   5 |
+|  9 | 56399183D | Juan    | Gómez     | López     |                   2 |
+|  5 | 17087203C | Marcos  | Loyola    | Méndez    |                   5 |
+|  7 | 80576669X | Pilar   | Ruiz      | NULL      |                   2 |
++----+-----------+---------+-----------+-----------+---------------------+
+```
 
-  
+1. Devuelve una lista con el nombre de los empleados que tienen los departamentos que no tienen un presupuesto entre 100000 y 200000 euros.
 
-9. Devuelve una lista con el nombre de los empleados que tienen los departamentos que no tienen un presupuesto entre 100000 y 200000 euros.
+```sql
+  select e.nombre, e.apellido1, e.apellido2
+  from empleado as e, departamento as d
+  where e.codigo_departamento = d.codigo and d.presupuesto between 100000 and 200000
++---------+-----------+-----------+
+| nombre  | apellido1 | apellido2 |
++---------+-----------+-----------+
+| Aarón   | Rivero    | Gómez     |
+| María   | Santana   | Moreno    |
+| Marta   | Herrera   | Gil       |
+| Adela   | Salas     | Díaz      |
+| Pilar   | Ruiz      | NULL      |
+| Juan    | Gómez     | López     |
+| Adrián  | Suárez    | NULL      |
++---------+-----------+-----------+
+```
 
-  ```sql
-  
-  ```
-
-  
-
-10. Devuelve un listado con el nombre de los departamentos donde existe algún empleado cuyo segundo apellido sea NULL. Tenga en cuenta que no debe mostrar nombres de departamentos que estén repetidos.
-
-    ```sql
+1. Devuelve un listado con el nombre de los departamentos donde existe algún empleado cuyo segundo apellido sea NULL. Tenga en cuenta que no debe mostrar nombres de departamentos que estén repetidos.
     
+    ```sql
+    select distinct d.nombre
+    from empleado as e, departamento as d
+    where e.codigo_departamento = d.codigo and e.apellido2 is NULL
+    +--------------+
+    | nombre       |
+    +--------------+
+    | Contabilidad |
+    | Sistemas     |
+    +--------------+
     ```
-
     
 
 ## **Consultas multitabla (Composición externa)**
@@ -943,63 +972,476 @@ CREATE TABLE empleado(
 ## **Resuelva todas las consultas utilizando las cláusulas LEFT JOIN y RIGHT JOIN.**
 
 1. Devuelve un listado con todos los empleados junto con los datos de los departamentos donde trabajan. Este listado también debe incluir los empleados que no tienen ningún departamento asociado.
-2. Devuelve un listado donde sólo aparezcan aquellos empleados que no tienen ningún departamento asociado.
-3. Devuelve un listado donde sólo aparezcan aquellos departamentos que no tienen ningún empleado asociado.
-4. Devuelve un listado con todos los empleados junto con los datos de los departamentos donde trabajan. El listado debe incluir los empleados que no tienen ningún departamento asociado y los departamentos que no tienen ningún empleado asociado. Ordene el listado alfabéticamente por el nombre del departamento.
-5. Devuelve un listado con los empleados que no tienen ningún departamento asociado y los departamentos que no tienen ningún empleado asociado. Ordene el listado alfabéticamente por el nombre del departamento.
+
+```sql
+  select concat(e.nombre, ' ',e.apellido1) as empleado, d.codigo, d.nombre, d.presupuesto, d.gastos
+  from empleado as e
+  left join departamento as d
+  on e.codigo_departamento = d.codigo
++--------------------+--------+------------------+-------------+--------+
+| empleado           | codigo | nombre           | presupuesto | gastos |
++--------------------+--------+------------------+-------------+--------+
+| Aarón Rivero       |      1 | Desarrollo       |      120000 |   6000 |
+| Adela Salas        |      2 | Sistemas         |      150000 |  21000 |
+| Adolfo Rubio       |      3 | Recursos Humanos |      280000 |  25000 |
+| Adrián Suárez      |      4 | Contabilidad     |      110000 |   3000 |
+| Marcos Loyola      |      5 | I+D              |      375000 | 380000 |
+| María Santana      |      1 | Desarrollo       |      120000 |   6000 |
+| Pilar Ruiz         |      2 | Sistemas         |      150000 |  21000 |
+| Pepe Ruiz          |      3 | Recursos Humanos |      280000 |  25000 |
+| Juan Gómez         |      2 | Sistemas         |      150000 |  21000 |
+| Diego Flores       |      5 | I+D              |      375000 | 380000 |
+| Marta Herrera      |      1 | Desarrollo       |      120000 |   6000 |
+| Irene Salas        |   NULL | NULL             |        NULL |   NULL |
+| Juan Antonio Sáez  |   NULL | NULL             |        NULL |   NULL |
++--------------------+--------+------------------+-------------+--------+
+```
+
+1. Devuelve un listado donde sólo aparezcan aquellos empleados que no tienen ningún departamento asociado.
+
+```sql
+  select concat(e.nombre, ' ',e.apellido1) as empleado, d.codigo, d.nombre, d.presupuesto, d.gastos
+  from empleado as e
+  left join departamento as d
+  on e.codigo_departamento = d.codigo
+  where e.codigo_departamento is NULL
++--------------------+--------+--------+-------------+--------+
+| empleado           | codigo | nombre | presupuesto | gastos |
++--------------------+--------+--------+-------------+--------+
+| Irene Salas        |   NULL | NULL   |        NULL |   NULL |
+| Juan Antonio Sáez  |   NULL | NULL   |        NULL |   NULL |
++--------------------+--------+--------+-------------+--------+  
+```
+
+1. Devuelve un listado donde sólo aparezcan aquellos departamentos que no tienen ningún empleado asociado.
+
+```sql
+  select d.codigo, d.nombre, d.presupuesto, d.gastos
+  from empleado as e
+  right join departamento as d
+  on e.codigo_departamento = d.codigo
+  where e.codigo_departamento is NULL
++--------+------------+-------------+--------+
+| codigo | nombre     | presupuesto | gastos |
++--------+------------+-------------+--------+
+|      6 | Proyectos  |           0 |      0 |
+|      7 | Publicidad |           0 |   1000 |
++--------+------------+-------------+--------+
+```
+
+1. Devuelve un listado con todos los empleados junto con los datos de los departamentos donde trabajan. El listado debe incluir los empleados que no tienen ningún departamento asociado y los departamentos que no tienen ningún empleado asociado. Ordene el listado alfabéticamente por el nombre del departamento.
+
+```sql
+select concat(e.nombre, ' ',e.apellido1) as empleado, d.codigo, d.nombre, d.presupuesto, d.gastos
+from empleado as e
+left join departamento as d
+on e.codigo_departamento = d.codigo
+order by d.nombre asc
++--------------------+--------+------------------+-------------+--------+
+| empleado           | codigo | nombre           | presupuesto | gastos |
++--------------------+--------+------------------+-------------+--------+
+| Irene Salas        |   NULL | NULL             |        NULL |   NULL |
+| Juan Antonio Sáez  |   NULL | NULL             |        NULL |   NULL |
+| Adrián Suárez      |      4 | Contabilidad     |      110000 |   3000 |
+| Aarón Rivero       |      1 | Desarrollo       |      120000 |   6000 |
+| María Santana      |      1 | Desarrollo       |      120000 |   6000 |
+| Marta Herrera      |      1 | Desarrollo       |      120000 |   6000 |
+| Marcos Loyola      |      5 | I+D              |      375000 | 380000 |
+| Diego Flores       |      5 | I+D              |      375000 | 380000 |
+| Adolfo Rubio       |      3 | Recursos Humanos |      280000 |  25000 |
+| Pepe Ruiz          |      3 | Recursos Humanos |      280000 |  25000 |
+| Adela Salas        |      2 | Sistemas         |      150000 |  21000 |
+| Pilar Ruiz         |      2 | Sistemas         |      150000 |  21000 |
+| Juan Gómez         |      2 | Sistemas         |      150000 |  21000 |
++--------------------+--------+------------------+-------------+--------+
+```
+
+1. Devuelve un listado con los empleados que no tienen ningún departamento asociado y los departamentos que no tienen ningún empleado asociado. Ordene el listado alfabéticamente por el nombre del departamento.
+
+```sql
+select concat(e.nombre, ' ',e.apellido1) as empleado, d.codigo, d.nombre, d.presupuesto, d.gastos
+  from empleado as e
+  left join departamento as d
+  on e.codigo_departamento = d.codigo
+  where e.codigo_departamento is NULL
+  union
+  select concat(e.nombre, ' ',e.apellido1) as empleado,d.codigo, d.nombre, d.presupuesto, d.gastos
+  from empleado as e
+  right join departamento as d
+  on e.codigo_departamento = d.codigo
+  where e.codigo_departamento is NULL
+  +--------------------+--------+------------+-------------+--------+
+| empleado           | codigo | nombre     | presupuesto | gastos |
++--------------------+--------+------------+-------------+--------+
+| Irene Salas        |   NULL | NULL       |        NULL |   NULL |
+| Juan Antonio Sáez  |   NULL | NULL       |        NULL |   NULL |
+| NULL               |      6 | Proyectos  |           0 |      0 |
+| NULL               |      7 | Publicidad |           0 |   1000 |
++--------------------+--------+------------+-------------+--------+
+```
 
 ## **Consultas resumen**
 
 1. Calcula la suma del presupuesto de todos los departamentos.
-2. Calcula la media del presupuesto de todos los departamentos.
-3. Calcula el valor mínimo del presupuesto de todos los departamentos.
-4. Calcula el nombre del departamento y el presupuesto que tiene asignado,
-del departamento con menor presupuesto.
-5. Calcula el valor máximo del presupuesto de todos los departamentos.
-6. Calcula el nombre del departamento y el presupuesto que tiene asignado,
-del departamento con mayor presupuesto.
-7. Calcula el número total de empleados que hay en la tabla empleado.
-8. Calcula el número de empleados que no tienen NULL en su segundo
-apellido.
-9. Calcula el número de empleados que hay en cada departamento. Tienes que
-devolver dos columnas, una con el nombre del departamento y otra con el
-número de empleados que tiene asignados.
-10. Calcula el nombre de los departamentos que tienen más de 2 empleados. El
-resultado debe tener dos columnas, una con el nombre del departamento y
-otra con el número de empleados que tiene asignados.
-11. Calcula el número de empleados que trabajan en cada uno de los
-departamentos. El resultado de esta consulta también tiene que incluir
-aquellos departamentos que no tienen ningún empleado asociado.
-12. Calcula el número de empleados que trabajan en cada unos de los
-departamentos que tienen un presupuesto mayor a 200000 euros.
+
+```sql
+  select SUM(presupuesto)
+  from departamento
++------------------+
+| SUM(presupuesto) |
++------------------+
+|          1035000 |
++------------------+
+```
+
+1. Calcula la media del presupuesto de todos los departamentos.
+
+```sql
+  select AVG(presupuesto)
+  from departamento
++--------------------+
+| AVG(presupuesto)   |
++--------------------+
+| 147857.14285714287 |
++--------------------+
+```
+
+1. Calcula el valor mínimo del presupuesto de todos los departamentos.
+
+```sql
+  select MIN(presupuesto)
+  from departamento
++------------------+
+| MIN(presupuesto) |
++------------------+
+|                0 |
++------------------+
+```
+
+1. Calcula el nombre del departamento y el presupuesto que tiene asignado, del departamento con menor presupuesto.
+
+```sql
+  select nombre, presupuesto
+  from departamento
+  order by presupuesto asc
+  limit 1
+ +-----------+-------------+
+| nombre    | presupuesto |
++-----------+-------------+
+| Proyectos |           0 |
++-----------+-------------+
+```
+
+1. Calcula el valor máximo del presupuesto de todos los departamentos.
+
+```sql
+select MAX(presupuesto)
+from departamento
++------------------+
+| MAX(presupuesto) |
++------------------+
+|           375000 |
++------------------+
+```
+
+1. Calcula el nombre del departamento y el presupuesto que tiene asignado, del departamento con mayor presupuesto.
+
+```sql
+select nombre, presupuesto
+from departamento
+order by presupuesto desc
+limit 1
++--------+-------------+
+| nombre | presupuesto |
++--------+-------------+
+| I+D    |      375000 |
++--------+-------------+
+```
+
+1. Calcula el número total de empleados que hay en la tabla empleado.
+
+```sql
+select count(id)
+from empleado
++-----------+
+| count(id) |
++-----------+
+|        13 |
++-----------+
+```
+
+1. Calcula el número de empleados que no tienen NULL en su segundo apellido.
+
+```sql
+select count(id)
+from empleado
+where apellido2 is not NULL
++-----------+
+| count(id) |
++-----------+
+|        11 |
++-----------+
+```
+
+1. Calcula el número de empleados que hay en cada departamento. Tienes que devolver dos columnas, una con el nombre del departamento y otra con el número de empleados que tiene asignados.
+
+```sql
+select d.nombre,count(e.id) as 'numero de empleados'
+from empleado as e, departamento as d
+where e.codigo_departamento = d.codigo
+group by d.nombre
++------------------+---------------------+
+| nombre           | numero de empleados |
++------------------+---------------------+
+| Desarrollo       |                   3 |
+| Sistemas         |                   3 |
+| Recursos Humanos |                   2 |
+| Contabilidad     |                   1 |
+| I+D              |                   2 |
++------------------+---------------------+
+```
+
+1. Calcula el nombre de los departamentos que tienen más de 2 empleados. El resultado debe tener dos columnas, una con el nombre del departamento y otra con el número de empleados que tiene asignados.
+
+```sql
+select d.nombre,count(e.id) as 'numero de empleados'
+from empleado as e, departamento as d
+where e.codigo_departamento = d.codigo
+group by d.nombre
+having count(e.id) > 2
++------------+---------------------+
+| nombre     | numero de empleados |
++------------+---------------------+
+| Desarrollo |                   3 |
+| Sistemas   |                   3 |
++------------+---------------------+
+```
+
+1. Calcula el número de empleados que trabajan en cada uno de los departamentos. El resultado de esta consulta también tiene que incluir aquellos departamentos que no tienen ningún empleado asociado.
+
+```sql
+select d.nombre,count(e.id) as 'numero de empleados'
+from empleado as e
+right join departamento as d
+on e.codigo_departamento = d.codigo
+group by d.nombre
++------------------+---------------------+
+| nombre           | numero de empleados |
++------------------+---------------------+
+| Desarrollo       |                   3 |
+| Sistemas         |                   3 |
+| Recursos Humanos |                   2 |
+| Contabilidad     |                   1 |
+| I+D              |                   2 |
+| Proyectos        |                   0 |
+| Publicidad       |                   0 |
++------------------+---------------------+
+```
+
+1. Calcula el número de empleados que trabajan en cada unos de los departamentos que tienen un presupuesto mayor a 200000 euros.
+
+```sql
+select d.nombre,count(e.id) as 'numero de empleados'
+from empleado as e
+right join departamento as d
+on e.codigo_departamento = d.codigo
+where d.presupuesto >= 200000
+group by d.nombre
++------------------+---------------------+
+| nombre           | numero de empleados |
++------------------+---------------------+
+| Recursos Humanos |                   2 |
+| I+D              |                   2 |
++------------------+---------------------+
+```
 
 ## **Subconsultas**
 
 ## **Con operadores básicos de comparación**
 
-1. Devuelve un listado con todos los empleados que tiene el departamento
-de Sistemas. (Sin utilizar INNER JOIN).
-2. Devuelve el nombre del departamento con mayor presupuesto y la cantidad
-que tiene asignada.
-3. Devuelve el nombre del departamento con menor presupuesto y la cantidad
-que tiene asignada.
-Subconsultas con ALL y ANY
-4. Devuelve el nombre del departamento con mayor presupuesto y la cantidad
-que tiene asignada. Sin hacer uso de MAX, ORDER BY ni LIMIT.
-5. Devuelve el nombre del departamento con menor presupuesto y la cantidad
-que tiene asignada. Sin hacer uso de MIN, ORDER BY ni LIMIT.
-6. Devuelve los nombres de los departamentos que tienen empleados
-asociados. (Utilizando ALL o ANY).
-7. Devuelve los nombres de los departamentos que no tienen empleados
-asociados. (Utilizando ALL o ANY).
-Subconsultas con IN y NOT IN
-8. Devuelve los nombres de los departamentos que tienen empleados
-asociados. (Utilizando IN o NOT IN).
-9. Devuelve los nombres de los departamentos que no tienen empleados
-asociados. (Utilizando IN o NOT IN).
-Subconsultas con EXISTS y NOT EXISTS
-10. Devuelve los nombres de los departamentos que tienen empleados
-asociados. (Utilizando EXISTS o NOT EXISTS).
-11. Devuelve los nombres de los departamentos que tienen empleados
-asociados. (Utilizando EXISTS o NOT EXISTS).
+1. Devuelve un listado con todos los empleados que tiene el departamento de Sistemas. (Sin utilizar INNER JOIN).
 
+```sql
+select nombre
+from empleado 
+where codigo_departamento = (
+  select codigo
+  from departamento
+  where nombre = 'Sistemas'
+)
++--------+
+| nombre |
++--------+
+| Adela  |
+| Pilar  |
+| Juan   |
++--------+
+```
+
+1. Devuelve el nombre del departamento con mayor presupuesto y la cantidad que tiene asignada.
+
+```sql
+select nombre, presupuesto
+from departamento
+where presupuesto =(
+  select max(presupuesto)
+  from departamento
+)
++--------+-------------+
+| nombre | presupuesto |
++--------+-------------+
+| I+D    |      375000 |
++--------+-------------+
+```
+
+1. Devuelve el nombre del departamento con menor presupuesto y la cantidad que tiene asignada.
+
+```sql
+select nombre, presupuesto
+from departamento
+where presupuesto =(
+  select min(presupuesto)
+  from departamento
+)
+limit 1
++-----------+-------------+
+| nombre    | presupuesto |
++-----------+-------------+
+| Proyectos |           0 |
++-----------+-------------+
+```
+
+ Subconsultas con ALL y ANY
+
+1. Devuelve el nombre del departamento con mayor presupuesto y la cantidad que tiene asignada. Sin hacer uso de MAX, ORDER BY ni LIMIT.
+
+```sql
+select nombre, presupuesto
+from departamento
+where presupuesto >= ALL (
+	select presupuesto 
+	from departamento
+)
++--------+-------------+
+| nombre | presupuesto |
++--------+-------------+
+| I+D    |      375000 |
++--------+-------------+
+```
+
+1. Devuelve el nombre del departamento con menor presupuesto y la cantidad que tiene asignada. Sin hacer uso de MIN, ORDER BY ni LIMIT.
+
+```sql
+select nombre, presupuesto
+from departamento
+where presupuesto <= ALL (
+	select presupuesto 
+	from departamento
+)
+limit 1
++-----------+-------------+
+| nombre    | presupuesto |
++-----------+-------------+
+| Proyectos |           0 |
++-----------+-------------+
+```
+
+1. Devuelve los nombres de los departamentos que tienen empleados asociados. (Utilizando ALL o ANY).
+
+```sql
+select nombre
+from departamento
+where codigo = ANY (
+	select codigo_departamento
+	from empleado
+)
++------------------+
+| nombre           |
++------------------+
+| Desarrollo       |
+| Sistemas         |
+| Recursos Humanos |
+| Contabilidad     |
+| I+D              |
++------------------+
+```
+
+1. Devuelve los nombres de los departamentos que no tienen empleados asociados. (Utilizando ALL o ANY).
+
+```sql
+select nombre
+from departamento
+where codigo = ALL (
+	select distinct codigo_departamento
+	from empleado
+);
+```
+
+ Subconsultas con IN y NOT IN
+
+1. Devuelve los nombres de los departamentos que tienen empleados asociados. (Utilizando IN o NOT IN).
+
+```sql
+select nombre
+from departamento
+where codigo IN  (
+	select codigo_departamento
+	from empleado
+);
++------------------+
+| nombre           |
++------------------+
+| Desarrollo       |
+| Sistemas         |
+| Recursos Humanos |
+| Contabilidad     |
+| I+D              |
++------------------+
+```
+
+1. Devuelve los nombres de los departamentos que no tienen empleados asociados. (Utilizando IN o NOT IN).
+
+```sql
+
+```
+
+ Subconsultas con EXISTS y NOT EXISTS
+
+1. Devuelve los nombres de los departamentos que tienen empleados asociados. (Utilizando EXISTS o NOT EXISTS).
+
+```sql
+select d.nombre
+from departamento as d
+where exists (
+	select 1
+	from empleado as e
+	where e.codigo_departamento = d.codigo
+);
++------------------+
+| nombre           |
++------------------+
+| Desarrollo       |
+| Sistemas         |
+| Recursos Humanos |
+| Contabilidad     |
+| I+D              |
++------------------+
+```
+
+1. Devuelve los nombres de los departamentos que tienen empleados asociados. (Utilizando EXISTS o NOT EXISTS).
+
+```sql
+select d.nombre
+from departamento as d
+where not exists (
+	select 1
+	from empleado as e
+	where e.codigo_departamento = d.codigo
+);
++------------+
+| nombre     |
++------------+
+| Proyectos  |
+| Publicidad |
++------------+
+```
